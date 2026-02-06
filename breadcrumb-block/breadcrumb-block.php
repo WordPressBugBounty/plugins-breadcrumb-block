@@ -2,9 +2,9 @@
 /**
  * Plugin Name:       Breadcrumb Block
  * Description:       A simple breadcrumb trail block that supports JSON-LD structured data and is compatible with Woocommerce
- * Requires at least: 5.8
+ * Requires at least: 5.9
  * Requires PHP:      7.0
- * Version:           1.0.16
+ * Version:           1.1.0
  * Author:            Phi Phan
  * Author URI:        https://boldblocks.net
  * Plugin URI:        https://boldblocks.net?utm_source=Breadcrumb+Block&utm_campaign=visit+site&utm_medium=link&utm_content=Plugin+URI
@@ -43,12 +43,16 @@ add_action( 'init', __NAMESPACE__ . '\\breadcrumb_block_block_init' );
  * @return string
  */
 function breadcrumb_block_render_block( $attributes, $content, $block ) {
+	// Get labels.
+	$labels = $attributes['labels'] ?? [];
+	if ( ! empty( $attributes['homeText'] ) && empty( $labels['home'] ) ) {
+		$labels['home'] = $attributes['homeText'];
+	}
+
 	$content = Breadcrumbs::get_instance()->get_breadcrumb_trail(
 		[
 			'separator' => $attributes['separator'] ?? '',
-			'labels'    => [
-				'home' => $attributes['homeText'] ?? '',
-			],
+			'labels'    => $labels,
 		]
 	);
 
