@@ -2,9 +2,9 @@
 /**
  * Plugin Name:       Breadcrumb Block
  * Description:       A simple breadcrumb trail block that supports JSON-LD structured data and is compatible with Woocommerce
- * Requires at least: 5.9
- * Requires PHP:      7.0
- * Version:           1.1.1
+ * Requires at least: 7.1
+ * Requires PHP:      8.0
+ * Version:           1.2.0
  * Author:            Phi Phan
  * Author URI:        https://boldblocks.net
  * Plugin URI:        https://boldblocks.net?utm_source=Breadcrumb+Block&utm_campaign=visit+site&utm_medium=link&utm_content=Plugin+URI
@@ -19,7 +19,10 @@ namespace BreadcrumbBlock;
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
 
-// Load required file.
+// Load required files.
+require_once __DIR__ . '/includes/short-title.php';
+require_once __DIR__ . '/includes/primary-term.php';
+require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/breadcrumbs.php';
 
 /**
@@ -33,16 +36,19 @@ function breadcrumb_block_block_init() {
 	register_block_type( __DIR__ . '/build', [ 'render_callback' => __NAMESPACE__ . '\\breadcrumb_block_render_block' ] );
 }
 add_action( 'init', __NAMESPACE__ . '\\breadcrumb_block_block_init' );
+add_action( 'init', [ Short_Title::class, 'init' ] );
+add_action( 'init', [ Primary_Term::class, 'init' ] );
+add_action( 'init', [ Settings::class, 'init' ] );
 
 /**
  * Renders the `boldblocks/breadcrumb-block` block on the server.
  *
- * @param  array    $attributes Block attributes.
- * @param  string   $content    Block default content.
- * @param  WP_Block $block      Block instance.
+ * @param  array     $attributes Block attributes.
+ * @param  string    $content    Block default content.
+ * @param  \WP_Block $block      Block instance.
  * @return string
  */
-function breadcrumb_block_render_block( $attributes, $content, $block ) {
+function breadcrumb_block_render_block( array $attributes, string $content, \WP_Block $block ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature required by register_block_type render callbacks.
 	// Get labels.
 	$labels = $attributes['labels'] ?? [];
 	if ( ! empty( $attributes['homeText'] ) && empty( $labels['home'] ) ) {
@@ -61,7 +67,7 @@ function breadcrumb_block_render_block( $attributes, $content, $block ) {
 		$vars[] = '--bb--crumb-gap:' . $attributes['gap'] . ';';
 	}
 
-	$style = count( $vars ) > 0 ? \implode( '', $vars ) : '';
+	$style = [] !== $vars ? implode( '', $vars ) : '';
 
 	$block_classes = [];
 	if ( $attributes['hideHomePage'] ?? false ) {

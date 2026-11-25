@@ -1,19 +1,34 @@
 === Breadcrumb Block ===
 Contributors:      Mr2P
-Tags:              breadcrumb, block, Gutenberg, navigation, menu
-Requires PHP:      7.0
-Requires at least: 5.9
-Tested up to:      7.1
-Stable tag:        1.1.1
+Tags:              breadcrumb, block, SEO, navigation, WooCommerce
+Requires PHP:      8.0
+Requires at least: 7.1
+Tested up to:      7.2
+Stable tag:        1.2.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Donate link:       https://boldblocks.net?utm_source=wp.org&utm_campaign=readme&utm_medium=link&utm_content=Breadcrumb+Block+Donate
 
-A simple breadcrumb trail block that supports JSON-LD structured data and is compatible with Woocommerce
+A lightweight breadcrumb block with multiple separators, primary taxonomy and terms, short titles, SEO-friendly, and WooCommerce support.
 
 == Description ==
 
-This is a single-block plugin for the breadcrumb trail. It's simple, lightweight, SEO-friendly, and WooCommerce compatibility. It also includes some simple separator icons. It works everywhere: Page Editor, Site Editor, and template files.
+Add a breadcrumb trail to your WordPress site with more control and useful features than the default Breadcrumb block, while keeping things simple and lightweight.
+
+Breadcrumb Block is a single-block plugin designed to do one thing well: display flexible, SEO-friendly breadcrumb navigation without unnecessary complexity or overhead.
+
+**Why choose Breadcrumb Block?**
+
+- **Multiple separator icons:** Choose from a collection of built-in separator icons to match your site's design.
+- **Primary taxonomy selection:** Choose which taxonomy appears in breadcrumb trails for each post type, instead of relying on the default taxonomy.
+- **Primary term selection:** Set a primary term for individual posts to control which term and parent hierarchy appear in the breadcrumb trail.
+- **Short titles:** Use shorter labels for posts and taxonomy terms without changing their actual titles.
+- **SEO-friendly:** Automatically generates JSON-LD structured data for search engines.
+- **WooCommerce compatible:** Supports breadcrumb trails for WooCommerce products and product categories.
+- **Easy customization:** Customize labels, separators, markup, and breadcrumb items through block settings and developer-friendly hooks.
+- **Works everywhere:** Use it in the Block Editor, Site Editor, and template files.
+
+No complicated setup, no bloated features. Just a lightweight breadcrumb block with the extra controls you actually need.
 
 === How to customize the breadcrumb ===
 
@@ -75,6 +90,38 @@ This is a single-block plugin for the breadcrumb trail. It's simple, lightweight
           }
         }, 10, 2 );
 
+6. How to show a shorter title for an item?
+
+    Each public post type and taxonomy has a `Breadcrumb short title` field: a panel in the block editor sidebar for posts, and a field on the term edit screens. When it is set, the trail and the JSON-LD structured data show the short title, while the item keeps its real title everywhere else.
+
+    To migrate short titles from other SEO plugins, or to override the value per item, use the `breadcrumb_block_get_short_title` filter. For example, to fall back to the Yoast SEO breadcrumb title:
+
+        add_filter( 'breadcrumb_block_get_short_title', function ( $short_title, $object ) {
+          if ( '' === $short_title && $object instanceof WP_Post ) {
+            return get_post_meta( $object->ID, '_yoast_wpseo_bctitle', true );
+          }
+          return $short_title;
+        }, 10, 2 );
+
+7. How to show a different taxonomy or term for a single item?
+
+    Settings > Breadcrumb Block maps each post type to the taxonomy shown in its single-item trails (Auto by default - `category` for posts, `product_cat` for products). Pick a public taxonomy - flat ones like tags work too; their terms simply show without a parent path.
+
+    To pin a specific term per post, use the `Primary term` dropdown in the `Breadcrumb` sidebar panel: it lists the terms assigned to the post from the taxonomy selected in the block settings, and the selected term (with its parent terms) replaces the default one in the trail and the JSON-LD. When nothing is selected, the default applies.
+
+    To migrate primary terms from Yoast SEO, or to override the value per item, use the `breadcrumb_block_get_primary_term` filter. For example, to fall back to the Yoast primary category:
+
+        add_filter( 'breadcrumb_block_get_primary_term', function ( $primary_term, $post ) {
+          if ( ! $primary_term && class_exists( 'WPSEO_Primary_Term' ) ) {
+            $yoast_primary = new WPSEO_Primary_Term( 'category', $post->ID );
+            $term_id = $yoast_primary->get_primary_term();
+            if ( $term_id ) {
+              return get_term( $term_id );
+            }
+          }
+          return $primary_term;
+        }, 10, 2 );
+
 If this plugin is useful for you, please do a quick review and [rate it](https://wordpress.org/support/plugin/breadcrumb-block/reviews/#new-post) on WordPress.org to help us spread the word. I would very much appreciate it.
 
 Please check out my other plugins if you're interested:
@@ -97,19 +144,42 @@ The plugin is developed using @wordpress/create-block.
 
 == Frequently Asked Questions ==
 
+= How is this different from the default Breadcrumb block? =
+
+Breadcrumb Block builds on the simplicity of the default breadcrumb experience with additional practical features. You can choose from multiple separator icons, select the taxonomy and primary term used in breadcrumb trails, set shorter titles for posts and terms, and customize the output. It also supports JSON-LD structured data and WooCommerce, all while remaining lightweight and easy to use.
+
 = What problem does this plugin solve? =
 
-It provides a simple way to add a breadcrumb trail to your site.
+It provides a simple way to add SEO-friendly breadcrumb navigation to your WordPress site, with more control over how breadcrumb items are displayed and organized.
 
-= Who needs this plugin? =
+= Can I choose which taxonomy appears in the breadcrumb trail? =
 
-Anyone can use this plugin.
+Yes. You can select a taxonomy for each post type in the Breadcrumb Block settings. You can also choose a primary term for individual posts.
+
+= Can I use shorter titles in breadcrumb trails? =
+
+Yes. Posts and taxonomy terms have a Breadcrumb short title field. When set, the shorter title appears in the breadcrumb trail and its JSON-LD structured data without changing the original title.
+
+= Does it support WooCommerce? =
+
+Yes. Breadcrumb Block supports WooCommerce products and product categories.
+
+= Where can I use this block? =
+
+You can use it in the Block Editor, Site Editor, and template files.
 
 == Screenshots ==
 
 1. Block settings
 
 == Changelog ==
+
+= 1.2.0 =
+*Release Date - 25 November 2026*
+
+* Added    - Primary term selection: choose the taxonomy shown for single-item trails in the block settings, and a per-post primary term in the Breadcrumb sidebar panel
+* Added    - Breadcrumb short title: a per-post and per-term field to show a shorter label in the trail and the JSON-LD structured data
+* Fixed    - JSON-LD `name` showed raw HTML entities (e.g. `&ldquo;`) instead of the text the visitor sees
 
 = 1.1.1 =
 *Release Date - 07 May 2026*
